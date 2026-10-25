@@ -19,7 +19,7 @@ const skillGroups = {
 const categories = ['All', 'Data Science', 'Machine Learning', 'Web Development', 'Analytics']
 
 function GlobeScene() {
-  const earthTexture = useLoader(TextureLoader, '/textures/earth-realistic.png')
+  const earthTexture = useLoader(TextureLoader, `${import.meta.env.BASE_URL}textures/earth-realistic.png`)
   earthTexture.colorSpace = SRGBColorSpace
   const points = useMemo(() => Array.from({ length: 120 }, (_, i) => {
     const phi = Math.acos(-1 + (2 * i) / 120)
