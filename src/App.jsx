@@ -1,0 +1,239 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Canvas, useLoader } from '@react-three/fiber'
+import { TextureLoader, SRGBColorSpace, BackSide } from 'three'
+import { Float, OrbitControls, Stars, Sphere, Line } from '@react-three/drei'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { ArrowDown, ArrowRight, ArrowUpRight, Atom, BarChart3, BrainCircuit, Check, ChevronDown, Code2, Database, Download, ExternalLink, Github, GraduationCap, Layers3, Linkedin, Mail, Menu, Moon, Network, Send, Sparkles, Sun, X } from 'lucide-react'
+import { portfolio } from './config/portfolio'
+import { projects } from './data/projects'
+
+const navItems = ['About', 'Skills', 'Projects', 'Journey', 'Contact']
+const skillGroups = {
+  Programming: ['Python', 'Java', 'JavaScript', 'SQL'],
+  'Data Science': ['Pandas', 'NumPy', 'Matplotlib', 'Seaborn', 'Scikit-learn'],
+  'AI & Machine Learning': ['Classification', 'Regression', 'Model Evaluation', 'Computer Vision', 'Deep Learning'],
+  'Web Development': ['HTML', 'CSS', 'React', 'Flask', 'Django', 'REST APIs'],
+  Databases: ['MySQL', 'PostgreSQL'],
+  Tools: ['Git', 'GitHub', 'Jupyter', 'VS Code', 'Power BI'],
+}
+const categories = ['All', 'Data Science', 'Machine Learning', 'Web Development', 'Analytics']
+
+function GlobeScene() {
+  const earthTexture = useLoader(TextureLoader, '/textures/earth-realistic.png')
+  earthTexture.colorSpace = SRGBColorSpace
+  const points = useMemo(() => Array.from({ length: 120 }, (_, i) => {
+    const phi = Math.acos(-1 + (2 * i) / 120)
+    const theta = Math.sqrt(120 * Math.PI) * phi
+    return [Math.cos(theta) * Math.sin(phi) * 1.515, Math.cos(phi) * 1.515, Math.sin(theta) * Math.sin(phi) * 1.515]
+  }), [])
+  const connections = useMemo(() => {
+    const links = []
+    for (let i = 0; i < 26; i++) {
+      const a = points[(i * 7 + 3) % points.length].map(v => v / 1.515)
+      const b = points[(i * 19 + 27) % points.length].map(v => v / 1.515)
+      const dot = Math.max(-0.999, Math.min(0.999, a.reduce((sum, v, j) => sum + v * b[j], 0)))
+      const angle = Math.acos(dot)
+      const sinAngle = Math.sin(angle) || 1
+      const arc = Array.from({ length: 22 }, (_, step) => {
+        const t = step / 21
+        const wa = Math.sin((1 - t) * angle) / sinAngle
+        const wb = Math.sin(t * angle) / sinAngle
+        const xyz = a.map((v, j) => wa * v + wb * b[j])
+        const length = Math.hypot(...xyz) || 1
+        return xyz.map(v => (v / length) * 1.508)
+      })
+      links.push(arc)
+    }
+    return links
+  }, [points])
+  return <Canvas camera={{ position: [0, 0, 5.2], fov: 42 }} dpr={[1, 1.5]}>
+    <ambientLight intensity={0.7} />
+    <pointLight position={[3, 2, 3]} intensity={35} color="#28caff" />
+    <pointLight position={[-3, -1, 2]} intensity={20} color="#6b55ff" />
+    <pointLight position={[0, 1, -3]} intensity={8} color="#187aff" />
+    <Stars radius={70} depth={30} count={1100} factor={2.2} saturation={0.3} fade speed={0.45} />
+    <Float speed={0.7} rotationIntensity={0.06} floatIntensity={0.1}>
+      <group rotation={[0, 1.05, 0]}>
+        <Sphere args={[1.5, 128, 128]}>
+          <meshStandardMaterial map={earthTexture} roughness={0.92} metalness={0.04} emissive="#061b43" emissiveMap={earthTexture} emissiveIntensity={0.12} />
+        </Sphere>
+        <Sphere args={[1.507, 48, 48]}>
+          <meshBasicMaterial color="#168cff" wireframe transparent opacity={0.075} />
+        </Sphere>
+        {connections.map((pair, i) => <Line key={`link-${i}`} points={pair} color={i % 3 === 0 ? '#b16cff' : '#21cfff'} transparent opacity={i % 3 === 0 ? 0.55 : 0.38} lineWidth={0.7} />)}
+        {points.map((p, i) => <mesh key={`node-${i}`} position={p}>
+          <sphereGeometry args={[i % 9 === 0 ? 0.025 : 0.009, 8, 8]} />
+          <meshBasicMaterial color={i % 9 === 0 ? '#e1a0ff' : '#64edff'} />
+        </mesh>)}
+        <Sphere args={[1.56, 64, 64]}>
+          <meshBasicMaterial color="#168dff" side={BackSide} transparent opacity={0.16} />
+        </Sphere>
+      </group>
+    </Float>
+    <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.38} />
+  </Canvas>
+}
+
+function IconTile({ icon: Icon, label, detail }) {
+  return <div className="icon-tile"><span className="tile-icon"><Icon size={19} /></span><div><strong>{label}</strong><small>{detail}</small></div></div>
+}
+
+function ProjectVisual({ type }) {
+  return <div className={`project-visual visual-${type}`}>
+    <div className="visual-grid" />
+    {type === 'flood' && <><div className="wave wave-a" /><div className="wave wave-b" /><span className="visual-label">FLOOD RISK / LIVE CONCEPT</span><div className="visual-stat"><span>Risk signals</span><b>Rainfall · Terrain · History</b></div></>}
+    {type === 'ship' && <><div className="route route-one" /><div className="route route-two" /><span className="port-dot dot-a" /><span className="port-dot dot-b" /><span className="visual-label">ROUTE GRAPH / COLOMBO</span><div className="visual-stat"><span>Optimization</span><b>Distance ↔ Preference</b></div></>}
+    {type === 'churn' && <><div className="chart-bars">{[28, 45, 35, 64, 52, 79, 58, 92, 68].map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</div><span className="visual-label">CUSTOMER ANALYTICS</span><div className="visual-stat"><span>Workflow</span><b>Prepare · Model · Explain</b></div></>}
+    {type === 'brain' && <><div className="brain-orb"><BrainCircuit size={70} strokeWidth={1.1} /></div><span className="visual-label">COMPUTER VISION / MRI</span><div className="visual-stat"><span>Learning focus</span><b>Image classification</b></div></>}
+    {type === 'tourism' && <><div className="tourism-chart"><span /><span /><span /><span /><span /><span /><span /></div><span className="visual-label">TOURISM DATA / SRI LANKA</span><div className="visual-stat"><span>Insights</span><b>Arrivals · Trends · Regions</b></div></>}
+  </div>
+}
+
+function ProjectModal({ project, onClose }) {
+  useEffect(() => {
+    if (!project) return
+    const close = e => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', close)
+    document.body.style.overflow = 'hidden'
+    return () => { window.removeEventListener('keydown', close); document.body.style.overflow = '' }
+  }, [project, onClose])
+  if (!project) return null
+  return <AnimatePresence>
+    <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={e => e.target === e.currentTarget && onClose()}>
+      <motion.div className="project-modal" initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18 }} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button className="icon-button modal-close" onClick={onClose} aria-label="Close project details"><X size={19} /></button>
+        <ProjectVisual type={project.visual} />
+        <div className="modal-content">
+          <span className="eyebrow">{project.status} · {project.category}</span>
+          <h2 id="modal-title">{project.title}</h2><p className="modal-subtitle">{project.subtitle}</p>
+          <p>{project.details}</p>
+          <div className="detail-grid"><div><h4>Problem</h4><p>{project.problem}</p></div><div><h4>Approach</h4><p>{project.approach}</p></div><div className="detail-wide"><h4>Future improvements</h4><p>{project.future}</p></div></div>
+          <div className="tag-list">{project.stack.map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>
+          <div className="modal-links">{project.github ? <a className="button button-secondary" href={project.github} target="_blank" rel="noreferrer">Repository <ExternalLink size={16}/></a> : <span className="muted-note">Repository link not configured yet</span>}{project.demo && <a className="button button-primary" href={project.demo} target="_blank" rel="noreferrer">Live demo <ArrowUpRight size={16}/></a>}</div>
+        </div>
+      </motion.div>
+    </motion.div>
+  </AnimatePresence>
+}
+
+function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem('pap-theme') || 'dark')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [activeNav, setActiveNav] = useState('Home')
+  const [skillGroup, setSkillGroup] = useState('Programming')
+  const [filter, setFilter] = useState('All')
+  const [search, setSearch] = useState('')
+  const [selectedProject, setSelectedProject] = useState(null)
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
+  const [formNotice, setFormNotice] = useState('')
+  const reduceMotion = useReducedMotion()
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    localStorage.setItem('pap-theme', theme)
+  }, [theme])
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting) setActiveNav(entry.target.id === 'hero' ? 'Home' : entry.target.dataset.nav || entry.target.id)
+    }), { rootMargin: '-35% 0px -55% 0px' })
+    document.querySelectorAll('main section[id]').forEach(section => observer.observe(section))
+    return () => observer.disconnect()
+  }, [])
+  const visibleProjects = projects.filter(p => (filter === 'All' || p.category === filter) && `${p.title} ${p.description} ${p.stack.join(' ')}`.toLowerCase().includes(search.toLowerCase()))
+  const motionProps = reduceMotion ? {} : { initial: { opacity: 0, y: 22 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.15 }, transition: { duration: 0.6 } }
+  const socialLinks = [
+    { label: 'GitHub', href: portfolio.github, icon: Github },
+    ...(portfolio.linkedin ? [{ label: 'LinkedIn', href: portfolio.linkedin, icon: Linkedin }] : []),
+    ...(portfolio.email ? [{ label: 'Email', href: `mailto:${portfolio.email}`, icon: Mail }] : []),
+  ]
+  const submitContact = e => {
+    e.preventDefault()
+    setFormNotice('Your message is validated, but sending is not configured yet. Add a secure form service or backend before publishing.')
+  }
+  return <div className="app-shell">
+    <div className="ambient ambient-one" /><div className="ambient ambient-two" />
+    <header className="site-header">
+      <a className="brand" href="#hero" aria-label="PAP home"><span className="brand-mark">PAP</span><span className="brand-copy"><strong>PASINDU PIYUMAL</strong><small>DATA SCIENCE PORTFOLIO</small></span></a>
+      <nav className={menuOpen ? 'main-nav nav-open' : 'main-nav'} aria-label="Main navigation">
+        {['Home', ...navItems].map(item => <a key={item} className={activeNav === item ? 'nav-link active' : 'nav-link'} href={`#${item === 'Home' ? 'hero' : item.toLowerCase()}`} onClick={() => setMenuOpen(false)}>{item}</a>)}
+      </nav>
+      <div className="header-actions"><button className="icon-button theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>{theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}</button><a href="#contact" className="button button-small button-outline">Let's Connect <ArrowUpRight size={15}/></a><button className="icon-button menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation">{menuOpen ? <X/> : <Menu/>}</button></div>
+    </header>
+
+    <main>
+      <section id="hero" className="hero section-wrap">
+        <div className="hero-copy">
+          <motion.div {...motionProps} className="availability"><span className="status-dot" /> Curious mind. Building what’s next.</motion.div>
+          <motion.p {...motionProps} className="hello">Hello, I'm</motion.p>
+          <motion.h1 {...motionProps}>Pasindu <span className="gradient-text">Piyumal</span><br/><span className="gradient-text">Amarasinghe</span></motion.h1>
+          <motion.p {...motionProps} className="hero-role">Data Science Undergraduate <i /> AI/ML Enthusiast <i /> Full-Stack Developer</motion.p>
+          <motion.p {...motionProps} className="hero-intro">{portfolio.intro}</motion.p>
+          <motion.div {...motionProps} className="hero-buttons"><a className="button button-primary" href="#projects"><Sparkles size={17}/> Explore My Projects <ArrowRight size={17}/></a><a className="button button-secondary" href={portfolio.cvPath} download><Download size={17}/> Download CV</a></motion.div>
+          <motion.div {...motionProps} className="social-row">{socialLinks.map(({ label, href, icon: Icon }) => <a key={label} href={href} aria-label={label} target={label === 'GitHub' || label === 'LinkedIn' ? '_blank' : undefined} rel="noreferrer"><Icon size={19}/></a>)}<span className="social-hint">{portfolio.linkedin ? 'Find me online' : 'GitHub profile · LinkedIn link can be added'}</span></motion.div>
+          <div className="hero-scroll"><span className="scroll-line" /> Scroll to explore <ChevronDown size={14}/></div>
+        </div>
+        <motion.div className="hero-art" initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1 }}>
+          <div className="art-orbit orbit-one" /><div className="art-orbit orbit-two" /><div className="globe-wrap"><GlobeScene /></div>
+          <div className="float-card card-analysis"><span className="mini-icon"><BarChart3 size={17}/></span><div><strong>Data Analysis</strong><small>Discover patterns</small></div><div className="mini-bars"><i/><i/><i/><i/><i/></div></div>
+          <div className="float-card card-ml"><span className="mini-icon purple"><BrainCircuit size={17}/></span><div><strong>Machine Learning</strong><small>Learn from data</small></div><div className="node-network"><i/><i/><i/><i/><b/><b/></div></div>
+          <div className="float-card card-code"><span className="mini-icon cyan"><Code2 size={17}/></span><div><strong>Build & Create</strong><small>Ideas into products</small></div></div>
+          <div className="art-caption"><span className="caption-pulse"/> EXPLORING THE DATA UNIVERSE</div>
+        </motion.div>
+        <div className="hero-stats">
+          <IconTile icon={GraduationCap} label="BSc (Hons)" detail="Data Science" />
+          <IconTile icon={Network} label="Sri Lanka" detail="Based here" />
+          <IconTile icon={Code2} label="Build & Learn" detail="Across the stack" />
+          <IconTile icon={Database} label={`${projects.length} Projects`} detail="In the showcase" />
+        </div>
+      </section>
+
+      <section id="about" data-nav="About" className="section-wrap content-section">
+        <motion.div {...motionProps} className="section-heading"><span className="eyebrow"><span className="eyebrow-dot"/> THE PERSON BEHIND THE PIXELS</span><h2>Curiosity first.<br/><span className="gradient-text">Impact by design.</span></h2><p>I'm interested in the space where data, intelligent systems, and thoughtful software meet.</p></motion.div>
+        <div className="about-grid">
+          <motion.div {...motionProps} className="about-copy glass-panel"><span className="panel-index">01 / ABOUT ME</span><h3>Making complex things<br/>easier to understand.</h3><p>As a Data Science undergraduate at Sabaragamuwa University of Sri Lanka, I'm developing my skills in data analysis, machine learning, and software development.</p><p>I enjoy breaking down challenging problems, experimenting with ideas, and building practical projects that connect technical work with real-world questions.</p><p>My goal is to keep learning, contribute to meaningful projects, and grow into a data and AI professional.</p><a className="text-link" href="#projects">Explore the work <ArrowRight size={16}/></a></motion.div>
+          <div className="about-cards">
+            <motion.div {...motionProps}><IconTile icon={BarChart3} label="Data & Insights" detail="Explore data, find patterns" /></motion.div>
+            <motion.div {...motionProps}><IconTile icon={BrainCircuit} label="AI & Machine Learning" detail="Build and evaluate models" /></motion.div>
+            <motion.div {...motionProps}><IconTile icon={Code2} label="Software Development" detail="Turn concepts into apps" /></motion.div>
+            <motion.div {...motionProps}><IconTile icon={Atom} label="Research Mindset" detail="Ask, test, iterate" /></motion.div>
+          </div>
+        </div>
+      </section>
+
+      <section id="skills" data-nav="Skills" className="section-wrap content-section">
+        <motion.div {...motionProps} className="section-heading centered"><span className="eyebrow"><span className="eyebrow-dot"/> MY TOOLKIT</span><h2>Tools for <span className="gradient-text">turning ideas real.</span></h2><p>A growing toolkit across programming, data, machine learning, and development.</p></motion.div>
+        <motion.div {...motionProps} className="skills-panel glass-panel">
+          <div className="skill-tabs" role="tablist" aria-label="Skill categories">{Object.keys(skillGroups).map(group => <button role="tab" aria-selected={skillGroup === group} className={skillGroup === group ? 'skill-tab selected' : 'skill-tab'} onClick={() => setSkillGroup(group)} key={group}>{group}</button>)}</div>
+          <AnimatePresence mode="wait"><motion.div key={skillGroup} className="skill-chips" initial={reduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>{skillGroups[skillGroup].map((skill, i) => <div className="skill-chip" key={skill}><span className="skill-number">0{i + 1}</span><span>{skill}</span><ArrowUpRight size={15}/></div>)}</motion.div></AnimatePresence>
+          <p className="skills-note"><Sparkles size={15}/> Skills are presented as areas of study and practice—not proficiency scores.</p>
+        </motion.div>
+      </section>
+
+      <section id="projects" data-nav="Projects" className="section-wrap content-section">
+        <motion.div {...motionProps} className="projects-heading"><div className="section-heading"><span className="eyebrow"><span className="eyebrow-dot"/> SELECTED EXPLORATIONS</span><h2>Projects with a <span className="gradient-text">purpose.</span></h2><p>A selection of academic and learning projects across data science, AI, and analytics.</p></div><span className="project-count"><strong>0{projects.length}</strong><small>PROJECTS</small></span></motion.div>
+        <div className="project-controls"><div className="filter-list" aria-label="Filter projects">{categories.map(c => <button key={c} onClick={() => setFilter(c)} className={filter === c ? 'filter-pill selected' : 'filter-pill'}>{c}</button>)}</div><label className="search-box"><span className="sr-only">Search projects</span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search projects..." /></label></div>
+        <div className="projects-grid">{visibleProjects.map((project, i) => <motion.article layout key={project.id} className="project-card" initial={reduceMotion ? false : { opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}><button className="project-open" onClick={() => setSelectedProject(project)} aria-label={`View details for ${project.title}`}><ProjectVisual type={project.visual}/><div className="project-body"><div className="project-meta"><span>{project.category}</span><span className="project-status">{project.status}</span></div><h3>{project.title}<ArrowUpRight size={18}/></h3><p className="project-subtitle">{project.subtitle}</p><p className="project-description">{project.description}</p><div className="tag-list">{project.stack.slice(0, 3).map(tag => <span className="tag" key={tag}>{tag}</span>)}</div><div className="project-footer"><span>View project details</span><span className="round-arrow"><ArrowRight size={16}/></span></div></div></button></motion.article>)}</div>
+        {visibleProjects.length === 0 && <div className="empty-state">No projects match that search. Try another keyword or category.</div>}
+        <p className="project-disclaimer">Project summaries describe the intended scope. Add verified repository links, results, and demos as they become available.</p>
+      </section>
+
+      <section id="journey" data-nav="Journey" className="section-wrap content-section">
+        <motion.div {...motionProps} className="section-heading centered"><span className="eyebrow"><span className="eyebrow-dot"/> THE ROAD SO FAR</span><h2>Learning by <span className="gradient-text">building.</span></h2><p>My current journey is focused on learning foundations and applying them through projects.</p></motion.div>
+        <div className="journey-grid">
+          <motion.div {...motionProps} className="journey-card glass-panel"><span className="journey-icon"><GraduationCap size={22}/></span><span className="eyebrow">EDUCATION</span><h3>BSc (Hons) in Data Science</h3><p className="journey-place">Sabaragamuwa University of Sri Lanka</p><p>Developing a foundation in data science, programming, statistics, databases, and machine-learning concepts.</p><div className="journey-tags"><span>Data Science</span><span>Statistics</span><span>Computing</span></div></motion.div>
+          <motion.div {...motionProps} className="journey-card glass-panel"><span className="journey-icon purple"><Layers3 size={22}/></span><span className="eyebrow">PROJECT-BASED LEARNING</span><h3>Build. Test. Improve.</h3><p className="journey-place">Academic and independent explorations</p><p>Exploring practical problems through predictive modelling, data visualization, web applications, and graph-based route comparisons.</p><div className="journey-tags"><span>Experimentation</span><span>Iteration</span><span>Research</span></div></motion.div>
+        </div>
+        <div className="journey-footnote"><span className="status-dot"/> Professional experience and certifications can be added here when verified details are available.</div>
+      </section>
+
+      <section id="contact" data-nav="Contact" className="section-wrap content-section contact-section">
+        <motion.div {...motionProps} className="contact-banner"><div className="contact-glow"/><div className="contact-copy"><span className="eyebrow"><span className="eyebrow-dot"/> LET'S MAKE SOMETHING MEANINGFUL</span><h2>Have a good problem?<br/><span className="gradient-text">Let's explore it.</span></h2><p>I'm open to connecting with people who care about data, AI, and building useful things.</p><div className="contact-links"><a href={portfolio.github} target="_blank" rel="noreferrer"><Github size={17}/> GitHub <ArrowUpRight size={14}/></a>{portfolio.linkedin && <a href={portfolio.linkedin} target="_blank" rel="noreferrer"><Linkedin size={17}/> LinkedIn <ArrowUpRight size={14}/></a>}{portfolio.email && <a href={`mailto:${portfolio.email}`}><Mail size={17}/> Email <ArrowUpRight size={14}/></a>}</div></div>
+          <form className="contact-form" onSubmit={submitContact}><div className="form-heading"><Send size={18}/><strong>Send a message</strong></div><label>Your name<input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Name" /></label><label>Email address<input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@example.com" /></label><label>Subject<input required value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} placeholder="What would you like to discuss?" /></label><label>Message<textarea required minLength={10} rows="3" value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="Tell me a little about it..." /></label><button className="button button-primary form-submit" type="submit">Validate message <ArrowRight size={16}/></button>{formNotice && <p className="form-notice" role="status"><Check size={15}/>{formNotice}</p>}<p className="form-footnote">Demo form only — no message is sent until a service is configured.</p></form>
+        </motion.div>
+      </section>
+    </main>
+    <footer className="site-footer section-wrap"><a className="brand footer-brand" href="#hero"><span className="brand-mark">PAP</span><span className="brand-copy"><strong>PASINDU PIYUMAL</strong><small>CURIOUS BY NATURE</small></span></a><p>Designed with curiosity. Built to keep learning.</p><a className="back-top" href="#hero">Back to top <ArrowDown size={14}/></a><span className="copyright">© {new Date().getFullYear()} Pasindu Piyumal</span></footer>
+    <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+  </div>
+}
+
+export default App
