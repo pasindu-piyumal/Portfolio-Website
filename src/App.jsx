@@ -3,7 +3,7 @@ import { Canvas, useLoader } from '@react-three/fiber'
 import { TextureLoader, SRGBColorSpace, BackSide } from 'three'
 import { Float, OrbitControls, Stars, Sphere, Line } from '@react-three/drei'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowRight, ArrowUpRight, Atom, BarChart3, BrainCircuit, Check, ChevronDown, Code2, Database, Download, ExternalLink, Github, GraduationCap, Layers3, Linkedin, Mail, Menu, Moon, Network, Send, Sparkles, Sun, X, Music2, Pause } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, Atom, BarChart3, BrainCircuit, Check, ChevronDown, Code2, Database, Download, ExternalLink, Github, GraduationCap, Layers3, Linkedin, Mail, Menu, Moon, Network, Send, Sparkles, Sun, X, Music2, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic } from 'lucide-react'
 import { portfolio } from './config/portfolio'
 import { projects } from './data/projects'
 
@@ -17,6 +17,11 @@ const skillGroups = {
   Tools: ['Git', 'GitHub', 'Jupyter', 'VS Code', 'Power BI'],
 }
 const categories = ['All', 'Data Science', 'Machine Learning', 'Web Development', 'Analytics']
+
+const musicTracks = [
+  { title: 'Portfolio Soundtrack', artist: 'Ambient Technology', src: 'music/portfolio.mp3' },
+  { title: 'Gaming Mode', artist: 'Vaitsez', src: 'music/gaming.mp3' },
+]
 
 function GlobeScene() {
   const earthTexture = useLoader(TextureLoader, `${import.meta.env.BASE_URL}textures/earth-realistic.png`)
@@ -119,7 +124,13 @@ function ProjectModal({ project, onClose }) {
 function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('pap-theme') || 'dark')
   const [musicPlaying, setMusicPlaying] = useState(false)
+  const [musicPanelOpen, setMusicPanelOpen] = useState(false)
+  const [trackIndex, setTrackIndex] = useState(0)
+  const [trackMenuOpen, setTrackMenuOpen] = useState(false)
+  const [volume, setVolume] = useState(15)
+  const [musicMuted, setMusicMuted] = useState(false)
   const audioRef = useRef(null)
+  const previousTrackRef = useRef(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeNav, setActiveNav] = useState('Home')
   const [skillGroup, setSkillGroup] = useState('Programming')
@@ -135,8 +146,9 @@ function App() {
     const audio = audioRef.current
     if (!audio) return
 
-    audio.volume = 0.15
-    audio.loop = true
+    audio.volume = volume / 100
+    audio.loop = false
+    audio.muted = musicMuted
 
     let disposed = false
 
@@ -175,6 +187,38 @@ function App() {
     }
   }, [])
   useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.volume = volume / 100
+  }, [volume])
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.muted = musicMuted
+  }, [musicMuted])
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (previousTrackRef.current === trackIndex) return
+    previousTrackRef.current = trackIndex
+    if (musicPlaying) {
+      audio.play().then(() => setMusicPlaying(true)).catch(() => setMusicPlaying(false))
+    }
+  }, [trackIndex, musicPlaying])
+  const changeTrack = async (nextIndex) => {
+    const audio = audioRef.current
+    if (!audio) return
+    setTrackIndex((nextIndex + musicTracks.length) % musicTracks.length)
+  }
+  const toggleMusic = async () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (audio.paused) {
+      try { await audio.play(); setMusicPlaying(true) }
+      catch (error) { console.info('Music playback could not start.', error); setMusicPlaying(false) }
+    } else { audio.pause(); setMusicPlaying(false) }
+  }
+  useEffect(() => {
     document.documentElement.dataset.theme = theme
     localStorage.setItem('pap-theme', theme)
   }, [theme])
@@ -198,30 +242,72 @@ function App() {
   }
   return <div className="app-shell">
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
-    <audio ref={audioRef} src={`${import.meta.env.BASE_URL}music/portfolio.mp3`} loop preload="auto" aria-hidden="true" />
+    <audio ref={audioRef} src={`${import.meta.env.BASE_URL}${musicTracks[trackIndex].src}`} preload="auto" aria-label="Portfolio background music" />
     <header className="site-header">
       <a className="brand" href="#hero" aria-label="PAP home"><span className="brand-mark">PAP</span><span className="brand-copy"><strong>PASINDU PIYUMAL</strong><small>DATA SCIENCE PORTFOLIO</small></span></a>
       <nav className={menuOpen ? 'main-nav nav-open' : 'main-nav'} aria-label="Main navigation">
         {['Home', ...navItems].map(item => <a key={item} className={activeNav === item ? 'nav-link active' : 'nav-link'} href={`#${item === 'Home' ? 'hero' : item.toLowerCase()}`} onClick={() => setMenuOpen(false)}>{item}</a>)}
       </nav>
-      <div className="header-actions"><button className="icon-button music-toggle" onClick={async () => {
-          const audio = audioRef.current
-          if (!audio) return
-
-          if (audio.paused) {
-            try {
-              await audio.play()
-              setMusicPlaying(true)
-            } catch (error) {
-              console.info('Music playback could not start.', error)
-              setMusicPlaying(false)
-            }
-          } else {
-            audio.pause()
-            setMusicPlaying(false)
-          }
-        }} aria-label={musicPlaying ? 'Pause background music' : 'Play background music'} title={musicPlaying ? 'Pause music' : 'Play music'}>{musicPlaying ? <Pause size={18}/> : <Music2 size={18}/>}</button><button className="icon-button theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>{theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}</button><a href="#contact" className="button button-small button-outline">Let's Connect <ArrowUpRight size={15}/></a><button className="icon-button menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation">{menuOpen ? <X/> : <Menu/>}</button></div>
+      <div className="header-actions"><button className="icon-button music-toggle" onClick={toggleMusic} aria-label={musicPlaying ? 'Pause background music' : 'Play background music'} title={musicPlaying ? 'Pause music' : 'Play music'}>{musicPlaying ? <Pause size={18}/> : <Music2 size={18}/>}</button><button className="icon-button" onClick={() => setMusicPanelOpen(open => !open)} aria-label="Open music controls" title="Music controls" aria-expanded={musicPanelOpen}><ListMusic size={18}/></button><button className="icon-button theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>{theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}</button><a href="#contact" className="button button-small button-outline">Let's Connect <ArrowUpRight size={15}/></a><button className="icon-button menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation">{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
+    {musicPanelOpen && <section className="music-panel" aria-label="Music player controls" style={{ position: 'fixed', top: '84px', right: 'max(18px, calc((100vw - 1200px) / 2))', zIndex: 1000, width: 'min(340px, calc(100vw - 32px))', padding: '20px', borderRadius: '18px', border: '1px solid var(--border, rgba(128,128,128,.35))', background: 'var(--panel, rgba(18, 24, 42, .96))', color: 'var(--text, inherit)', boxShadow: '0 18px 55px rgba(0,0,0,.28)', backdropFilter: 'blur(20px)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
+        <div><strong style={{ display: 'block', fontSize: '15px' }}>Music player</strong><span style={{ opacity: .7, fontSize: '12px' }}>Customize your listening</span></div>
+        <button className="icon-button" onClick={() => setMusicPanelOpen(false)} aria-label="Close music controls"><X size={17}/></button>
+      </div>
+      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted, #94a3b8)', marginBottom: '9px' }}>Now playing</label>
+      <div style={{ position: 'relative', marginBottom: '18px' }}>
+        <button
+          type="button"
+          className="music-track-trigger"
+          aria-haspopup="listbox"
+          aria-expanded={trackMenuOpen}
+          onClick={() => setTrackMenuOpen(open => !open)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '12px', width: '100%', minHeight: '66px',
+            padding: '11px 13px', textAlign: 'left', borderRadius: '14px', cursor: 'pointer',
+            border: trackMenuOpen ? '1px solid rgba(139, 92, 246, .8)' : '1px solid rgba(148, 163, 184, .24)',
+            background: 'linear-gradient(135deg, rgba(99,102,241,.13), rgba(15,23,42,.62))',
+            color: 'var(--text, #f8fafc)', boxShadow: trackMenuOpen ? '0 0 0 3px rgba(139,92,246,.12)' : 'inset 0 1px 0 rgba(255,255,255,.035)',
+            transition: 'border-color .18s ease, box-shadow .18s ease'
+          }}
+        >
+          <span style={{ width: '40px', height: '40px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '11px', color: '#c4b5fd', background: 'linear-gradient(145deg, rgba(139,92,246,.24), rgba(59,130,246,.13))', border: '1px solid rgba(167,139,250,.2)' }}><Music2 size={19}/></span>
+          <span style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, flex: 1 }}>
+            <strong style={{ fontSize: '13px', fontWeight: 650, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{musicTracks[trackIndex].title}</strong>
+            <span style={{ fontSize: '11px', color: 'var(--muted, #94a3b8)', lineHeight: 1.2 }}>{musicTracks[trackIndex].artist}</span>
+          </span>
+          <ChevronDown size={17} style={{ flexShrink: 0, color: '#a5b4fc', transition: 'transform .2s ease', transform: trackMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}/>
+        </button>
+        {trackMenuOpen && <>
+          <button type="button" aria-label="Close track menu" onClick={() => setTrackMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'transparent', border: 0, padding: 0, cursor: 'default' }}/>
+          <div role="listbox" aria-label="Choose music track" style={{ position: 'absolute', zIndex: 1001, top: 'calc(100% + 8px)', left: 0, right: 0, padding: '6px', borderRadius: '15px', border: '1px solid rgba(148,163,184,.22)', background: 'var(--panel, #111827)', boxShadow: '0 20px 48px rgba(0,0,0,.42)', backdropFilter: 'blur(22px)', overflow: 'hidden' }}>
+            {musicTracks.map((track, index) => {
+              const selected = index === trackIndex
+              return <button key={track.src} type="button" role="option" aria-selected={selected} onClick={() => { void changeTrack(index); setTrackMenuOpen(false) }} style={{ display: 'flex', alignItems: 'center', gap: '11px', width: '100%', padding: '10px', textAlign: 'left', border: selected ? '1px solid rgba(139,92,246,.28)' : '1px solid transparent', borderRadius: '10px', background: selected ? 'linear-gradient(100deg, rgba(139,92,246,.2), rgba(59,130,246,.09))' : 'transparent', color: 'var(--text, #f8fafc)', cursor: 'pointer', transition: 'background .15s ease' }} onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'rgba(148,163,184,.09)' }} onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent' }}>
+                <span style={{ width: '34px', height: '34px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '9px', background: selected ? 'rgba(139,92,246,.2)' : 'rgba(148,163,184,.09)', color: selected ? '#c4b5fd' : 'var(--muted, #94a3b8)' }}>{selected ? <Check size={16}/> : <Music2 size={16}/>}</span>
+                <span style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: 0 }}>
+                  <strong style={{ fontSize: '12px', fontWeight: selected ? 650 : 500, lineHeight: 1.3 }}>{track.title}</strong>
+                  <span style={{ fontSize: '11px', color: 'var(--muted, #94a3b8)' }}>{track.artist}</span>
+                </span>
+                {selected && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 10px rgba(167,139,250,.7)'}}/>}
+              </button>
+            })}
+          </div>
+        </>}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '17px' }}>
+        <button className="icon-button" onClick={() => changeTrack(trackIndex - 1)} aria-label="Previous track"><SkipBack size={18}/></button>
+        <button className="icon-button music-toggle" onClick={toggleMusic} aria-label={musicPlaying ? 'Pause music' : 'Play music'}>{musicPlaying ? <Pause size={19}/> : <Music2 size={19}/>}</button>
+        <button className="icon-button" onClick={() => changeTrack(trackIndex + 1)} aria-label="Next track"><SkipForward size={18}/></button>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <button className="icon-button" onClick={() => setMusicMuted(muted => !muted)} aria-label={musicMuted ? 'Unmute music' : 'Mute music'} title={musicMuted ? 'Unmute' : 'Mute'}>{musicMuted || volume === 0 ? <VolumeX size={18}/> : <Volume2 size={18}/>}</button>
+        <input aria-label="Music volume" type="range" min="0" max="100" value={volume} onChange={e => setVolume(Number(e.target.value))} style={{ flex: 1, accentColor: 'var(--accent, #6c63ff)', cursor: 'pointer' }} />
+        <span style={{ minWidth: '38px', textAlign: 'right', fontSize: '12px', fontVariantNumeric: 'tabular-nums' }}>{musicMuted ? 'Muted' : `${volume}%`}</span>
+      </div>
+      <p style={{ fontSize: '11px', opacity: .65, margin: '14px 0 0', lineHeight: 1.5 }}>Tip: add your MP3 files to the <code>public/music</code> folder. Browsers may require a click before music can start.</p>
+    </section>}
 
     <main>
       <section id="hero" className="hero section-wrap">
