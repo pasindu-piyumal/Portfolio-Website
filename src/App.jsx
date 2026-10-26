@@ -265,7 +265,17 @@ function App() {
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <audio ref={audioRef} src={`${import.meta.env.BASE_URL}${musicTracks[trackIndex].src}`} preload="auto" aria-label="Portfolio background music" />
     <header className="site-header">
-      <a className="brand" href="#hero" aria-label="PAP home"><span className="brand-mark">PAP</span><span className="brand-copy"><strong>PASINDU PIYUMAL</strong><small>DATA SCIENCE PORTFOLIO</small></span></a>
+      <a className="brand" href="#hero" aria-label="PAP home">
+        <img
+          className="brand-photo"
+          src={`${import.meta.env.BASE_URL}brand-photo/profile.png`}
+          alt="Pasindu Piyumal"
+        />
+        <span className="brand-copy">
+          <strong>PASINDU PIYUMAL</strong>
+          <small>DATA SCIENCE PORTFOLIO</small>
+        </span>
+      </a>
       <nav className={menuOpen ? 'main-nav nav-open' : 'main-nav'} aria-label="Main navigation">
         {['Home', ...navItems].map(item => <a key={item} className={activeNav === item ? 'nav-link active' : 'nav-link'} href={`#${item === 'Home' ? 'hero' : item.toLowerCase()}`} onClick={() => setMenuOpen(false)}>{item}</a>)}
       </nav>
