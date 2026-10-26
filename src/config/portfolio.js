@@ -10,7 +10,7 @@ export const portfolio = {
   degree: 'BSc (Hons) in Data Science',
   university: 'Sabaragamuwa University of Sri Lanka',
   github: 'https://github.com/pasindu-piyumal',
-  linkedin: '', // Add your real LinkedIn profile URL
+  linkedin: 'https://www.linkedin.com/in/pasindu-piyumal/',
   email: '', // Add your real email address
   cvPath: '/resume/Pasindu-Piyumal-CV.pdf',
 }
