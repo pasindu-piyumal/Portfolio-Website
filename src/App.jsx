@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ArrowDown, ArrowRight, ArrowUpRight, Atom, BarChart3, BrainCircuit, Check, ChevronDown, Code2, Database, Download, ExternalLink, Github, GraduationCap, Layers3, Linkedin, Mail, Menu, Moon, Network, Send, Sparkles, Sun, X, Music2, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic } from 'lucide-react'
 import { portfolio } from './config/portfolio'
 import { projects } from './data/projects'
+import emailjs from '@emailjs/browser';
 
 const navItems = ['About', 'Skills', 'Projects', 'Journey', 'Contact']
 const skillGroups = {
@@ -236,10 +237,30 @@ function App() {
     ...(portfolio.linkedin ? [{ label: 'LinkedIn', href: portfolio.linkedin, icon: Linkedin }] : []),
     ...(portfolio.email ? [{ label: 'Email', href: `mailto:${portfolio.email}`, icon: Mail }] : []),
   ]
-  const submitContact = e => {
-    e.preventDefault()
-    setFormNotice('Your message is validated, but sending is not configured yet. Add a secure form service or backend before publishing.')
-  }
+  const submitContact = async (e) => {
+    e.preventDefault();
+    setFormNotice('Sending your message...');
+
+    try {
+      await emailjs.send(
+        'service_uukp94j',
+        'template_vj02g13',
+        {
+          name: form.name,
+          email: form.email,
+          subject: form.subject,
+          message: form.message,
+        },
+        'P0RuVh_12JshKCYLg'
+      );
+
+      setFormNotice('Message sent successfully!');
+      setForm({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      console.error('EmailJS error:', error);
+      setFormNotice('Failed to send your message. Please try again.');
+    }
+  };
   return <div className="app-shell">
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <audio ref={audioRef} src={`${import.meta.env.BASE_URL}${musicTracks[trackIndex].src}`} preload="auto" aria-label="Portfolio background music" />
