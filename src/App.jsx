@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useLoader } from '@react-three/fiber'
 import { TextureLoader, SRGBColorSpace, BackSide } from 'three'
 import { Float, OrbitControls, Stars, Sphere, Line } from '@react-three/drei'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowRight, ArrowUpRight, Atom, BarChart3, BrainCircuit, Check, ChevronDown, Code2, Database, Download, ExternalLink, Github, GraduationCap, Layers3, Linkedin, Mail, Menu, Moon, Network, Send, Sparkles, Sun, X } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, Atom, BarChart3, BrainCircuit, Check, ChevronDown, Code2, Database, Download, ExternalLink, Github, GraduationCap, Layers3, Linkedin, Mail, Menu, Moon, Network, Send, Sparkles, Sun, X, Music2, Pause } from 'lucide-react'
 import { portfolio } from './config/portfolio'
 import { projects } from './data/projects'
 
@@ -118,6 +118,8 @@ function ProjectModal({ project, onClose }) {
 
 function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('pap-theme') || 'dark')
+  const [musicPlaying, setMusicPlaying] = useState(false)
+  const audioRef = useRef(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeNav, setActiveNav] = useState('Home')
   const [skillGroup, setSkillGroup] = useState('Programming')
@@ -127,6 +129,18 @@ function App() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [formNotice, setFormNotice] = useState('')
   const reduceMotion = useReducedMotion()
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    audio.volume = 0.25
+
+    if (musicPlaying) {
+      audio.play().catch(() => setMusicPlaying(false))
+    } else {
+      audio.pause()
+    }
+  }, [musicPlaying])
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     localStorage.setItem('pap-theme', theme)
@@ -151,12 +165,13 @@ function App() {
   }
   return <div className="app-shell">
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
+    <audio ref={audioRef} src={`${import.meta.env.BASE_URL}music/portfolio.mp3`} loop preload="none" aria-hidden="true" />
     <header className="site-header">
       <a className="brand" href="#hero" aria-label="PAP home"><span className="brand-mark">PAP</span><span className="brand-copy"><strong>PASINDU PIYUMAL</strong><small>DATA SCIENCE PORTFOLIO</small></span></a>
       <nav className={menuOpen ? 'main-nav nav-open' : 'main-nav'} aria-label="Main navigation">
         {['Home', ...navItems].map(item => <a key={item} className={activeNav === item ? 'nav-link active' : 'nav-link'} href={`#${item === 'Home' ? 'hero' : item.toLowerCase()}`} onClick={() => setMenuOpen(false)}>{item}</a>)}
       </nav>
-      <div className="header-actions"><button className="icon-button theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>{theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}</button><a href="#contact" className="button button-small button-outline">Let's Connect <ArrowUpRight size={15}/></a><button className="icon-button menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation">{menuOpen ? <X/> : <Menu/>}</button></div>
+      <div className="header-actions"><button className="icon-button music-toggle" onClick={() => setMusicPlaying(playing => !playing)} aria-label={musicPlaying ? 'Pause background music' : 'Play background music'} title={musicPlaying ? 'Pause music' : 'Play music'}>{musicPlaying ? <Pause size={18}/> : <Music2 size={18}/>}</button><button className="icon-button theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>{theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}</button><a href="#contact" className="button button-small button-outline">Let's Connect <ArrowUpRight size={15}/></a><button className="icon-button menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation">{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
 
     <main>
