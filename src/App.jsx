@@ -140,6 +140,7 @@ function App() {
   const [selectedProject, setSelectedProject] = useState(null)
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [formNotice, setFormNotice] = useState('')
+  const [isSending, setIsSending] = useState(false);
   const reduceMotion = useReducedMotion()
   // Try autoplay on every page load. If the browser blocks audible autoplay,
   // retry after the visitor interacts anywhere except the music toggle.
@@ -406,11 +407,160 @@ function App() {
         <div className="journey-footnote"><span className="status-dot"/> Professional experience and certifications can be added here when verified details are available.</div>
       </section>
 
-      <section id="contact" data-nav="Contact" className="section-wrap content-section contact-section">
-        <motion.div {...motionProps} className="contact-banner"><div className="contact-glow"/><div className="contact-copy"><span className="eyebrow"><span className="eyebrow-dot"/> LET'S MAKE SOMETHING MEANINGFUL</span><h2>Have a good problem?<br/><span className="gradient-text">Let's explore it.</span></h2><p>I'm open to connecting with people who care about data, AI, and building useful things.</p><div className="contact-links"><a href={portfolio.github} target="_blank" rel="noreferrer"><Github size={17}/> GitHub <ArrowUpRight size={14}/></a>{portfolio.linkedin && <a href={portfolio.linkedin} target="_blank" rel="noreferrer"><Linkedin size={17}/> LinkedIn <ArrowUpRight size={14}/></a>}{portfolio.email && <a href={`mailto:${portfolio.email}`}><Mail size={17}/> Email <ArrowUpRight size={14}/></a>}</div></div>
-          <form className="contact-form" onSubmit={submitContact}><div className="form-heading"><Send size={18}/><strong>Send a message</strong></div><label>Your name<input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Name" /></label><label>Email address<input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@example.com" /></label><label>Subject<input required value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} placeholder="What would you like to discuss?" /></label><label>Message<textarea required minLength={10} rows="3" value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="Tell me a little about it..." /></label><button className="button button-primary form-submit" type="submit">Validate message <ArrowRight size={16}/></button>{formNotice && <p className="form-notice" role="status"><Check size={15}/>{formNotice}</p>}<p className="form-footnote">Demo form only — no message is sent until a service is configured.</p></form>
+      
+      
+      <section
+        id="contact"
+        data-nav="Contact"
+        className="section-wrap content-section contact-section"
+      >
+        <motion.div {...motionProps} className="contact-banner">
+          <div className="contact-glow" />
+
+          {/* Left side */}
+          <div className="contact-copy">
+            <span className="eyebrow">
+              <span className="eyebrow-dot" />
+              LET'S MAKE SOMETHING MEANINGFUL
+            </span>
+
+            <h2>
+              Have a good problem?
+              <br />
+              <span className="gradient-text">Let's explore it.</span>
+            </h2>
+
+            <p>
+              I'm open to connecting with people who care about data, AI,
+              and building useful things.
+            </p>
+
+            <div className="contact-links">
+              <a
+                href={portfolio.github}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Github size={17} />
+                GitHub
+                <ArrowUpRight size={14} />
+              </a>
+
+              {portfolio.linkedin && (
+                <a
+                  href={portfolio.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Linkedin size={17} />
+                  LinkedIn
+                  <ArrowUpRight size={14} />
+                </a>
+              )}
+            </div>
+
+            {/* Profile portrait below social buttons */}
+            <div className="contact-portrait">
+              <div className="portrait-orb" />
+              <div className="portrait-ring" />
+
+              <img
+                src={`${import.meta.env.BASE_URL}brand-photo/profile2.png`}
+                alt="Pasindu Piyumal"
+                className="contact-portrait-img"
+                loading="lazy"
+              />
+
+              <span className="portrait-dot portrait-dot-one" />
+              <span className="portrait-dot portrait-dot-two" />
+              <span className="portrait-dot portrait-dot-three" />
+              <span className="portrait-dot portrait-dot-four" />
+              <span className="portrait-dot portrait-dot-five" />
+              <span className="portrait-dot portrait-dot-six" />
+            </div>
+          </div>
+
+          {/* Right side: keep the contact form functional */}
+          <form className="contact-form" onSubmit={submitContact}>
+            <div className="form-heading">
+              <Send size={18} />
+              <strong>Send a message</strong>
+            </div>
+
+            <label>
+              Your name
+              <input
+                required
+                value={form.name}
+                onChange={e =>
+                  setForm({ ...form, name: e.target.value })
+                }
+                placeholder="Name"
+              />
+            </label>
+
+            <label>
+              Email address
+              <input
+                required
+                type="email"
+                value={form.email}
+                onChange={e =>
+                  setForm({ ...form, email: e.target.value })
+                }
+                placeholder="you@example.com"
+              />
+            </label>
+
+            <label>
+              Subject
+              <input
+                required
+                value={form.subject}
+                onChange={e =>
+                  setForm({ ...form, subject: e.target.value })
+                }
+                placeholder="What would you like to discuss?"
+              />
+            </label>
+
+            <label>
+              Message
+              <textarea
+                required
+                minLength={10}
+                rows="3"
+                value={form.message}
+                onChange={e =>
+                  setForm({ ...form, message: e.target.value })
+                }
+                placeholder="Tell me a little about it..."
+              />
+            </label>
+
+            <button
+              className="button button-primary form-submit"
+              type="submit"
+              disabled={isSending}
+            >
+              {isSending ? 'Sending...' : 'Send message'}
+              <ArrowRight size={16} />
+            </button>
+
+            {formNotice && (
+              <p className="form-notice" role="status">
+                <Check size={15} />
+                {formNotice}
+              </p>
+            )}
+
+            <p className="form-footnote">
+              Your message will be sent directly to my inbox.
+            </p>
+          </form>
         </motion.div>
       </section>
+
     </main>
     <footer className="site-footer section-wrap"><a className="brand footer-brand" href="#hero"><span className="brand-mark">PAP</span><span className="brand-copy"><strong>PASINDU PIYUMAL</strong><small>CURIOUS BY NATURE</small></span></a><p>Designed with curiosity. Built to keep learning.</p><a className="back-top" href="#hero">Back to top <ArrowDown size={14}/></a><span className="copyright">© {new Date().getFullYear()} Pasindu Piyumal</span></footer>
     <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
