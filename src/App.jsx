@@ -7,6 +7,7 @@ import { ArrowDown, ArrowRight, ArrowUpRight, Atom, BarChart3, BrainCircuit, Che
 import { portfolio } from './config/portfolio'
 import { projects } from './data/projects'
 import emailjs from '@emailjs/browser';
+import PortfolioChatWidget from './components/PortfolioChatWidget'
 
 const navItems = ['About', 'Skills', 'Projects', 'Journey', 'Contact']
 const skillGroups = {
@@ -564,6 +565,7 @@ function App() {
     </main>
     <footer className="site-footer section-wrap"><a className="brand footer-brand" href="#hero"><span className="brand-mark">PAP</span><span className="brand-copy"><strong>PASINDU PIYUMAL</strong><small>CURIOUS BY NATURE</small></span></a><p>Designed with curiosity. Built to keep learning.</p><a className="back-top" href="#hero">Back to top <ArrowDown size={14}/></a><span className="copyright">© {new Date().getFullYear()} Pasindu Piyumal</span></footer>
     <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+    <PortfolioChatWidget />
   </div>
 }
 
