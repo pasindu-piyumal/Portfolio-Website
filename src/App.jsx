@@ -18,7 +18,13 @@ const skillGroups = {
   Databases: ['MySQL', 'PostgreSQL'],
   Tools: ['Git', 'GitHub', 'Jupyter', 'VS Code', 'Power BI'],
 }
-const categories = ['All', 'Data Science', 'Machine Learning', 'Web Development', 'Analytics']
+const categories = [
+  'All',
+  'Data Science',
+  'Machine Learning',
+  'Web Development',
+  'Analytics'
+]
 
 const musicTracks = [
   { title: 'Portfolio Soundtrack', artist: 'Ambient Technology', src: 'music/portfolio.mp3' },
@@ -85,16 +91,81 @@ function IconTile({ icon: Icon, label, detail }) {
   return <div className="icon-tile"><span className="tile-icon"><Icon size={19} /></span><div><strong>{label}</strong><small>{detail}</small></div></div>
 }
 
+
 function ProjectVisual({ type }) {
-  return <div className={`project-visual visual-${type}`}>
-    <div className="visual-grid" />
-    {type === 'flood' && <><div className="wave wave-a" /><div className="wave wave-b" /><span className="visual-label">FLOOD RISK / LIVE CONCEPT</span><div className="visual-stat"><span>Risk signals</span><b>Rainfall · Terrain · History</b></div></>}
-    {type === 'ship' && <><div className="route route-one" /><div className="route route-two" /><span className="port-dot dot-a" /><span className="port-dot dot-b" /><span className="visual-label">ROUTE GRAPH / COLOMBO</span><div className="visual-stat"><span>Optimization</span><b>Distance ↔ Preference</b></div></>}
-    {type === 'churn' && <><div className="chart-bars">{[28, 45, 35, 64, 52, 79, 58, 92, 68].map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</div><span className="visual-label">CUSTOMER ANALYTICS</span><div className="visual-stat"><span>Workflow</span><b>Prepare · Model · Explain</b></div></>}
-    {type === 'brain' && <><div className="brain-orb"><BrainCircuit size={70} strokeWidth={1.1} /></div><span className="visual-label">COMPUTER VISION / MRI</span><div className="visual-stat"><span>Learning focus</span><b>Image classification</b></div></>}
-    {type === 'tourism' && <><div className="tourism-chart"><span /><span /><span /><span /><span /><span /><span /></div><span className="visual-label">TOURISM DATA / SRI LANKA</span><div className="visual-stat"><span>Insights</span><b>Arrivals · Trends · Regions</b></div></>}
-  </div>
+  return (
+    <div className={`project-visual visual-${type}`}>
+      <div className="visual-grid" />
+
+      {type === 'flood' && (
+        <>
+          <div className="wave wave-a" />
+          <div className="wave wave-b" />
+          <span className="visual-label">FLOOD RISK / SRI LANKA</span>
+          <div className="visual-stat">
+            <span>Risk monitoring</span>
+            <b>Weather · Terrain · River Levels</b>
+          </div>
+        </>
+      )}
+
+      {type === 'brain' && (
+        <>
+          <div className="brain-orb">
+            <BrainCircuit size={70} strokeWidth={1.1} />
+          </div>
+          <span className="visual-label">DEEP LEARNING / MRI</span>
+          <div className="visual-stat">
+            <span>Classification</span>
+            <b>Four MRI Categories</b>
+          </div>
+        </>
+      )}
+
+      {type === 'student' && (
+        <>
+          <div className="brain-orb">
+            <GraduationCap size={70} strokeWidth={1.1} />
+          </div>
+          <span className="visual-label">EDUCATION / MANAGEMENT</span>
+          <div className="visual-stat">
+            <span>Academic records</span>
+            <b>Students · Results · Subjects</b>
+          </div>
+        </>
+      )}
+
+      {type === 'inflation' && (
+        <>
+          <div className="chart-bars">
+            {[32, 45, 39, 57, 48, 72, 65, 86, 95].map((h, i) => (
+              <i key={i} style={{ height: `${h}%` }} />
+            ))}
+          </div>
+          <span className="visual-label">POWER BI / ECONOMIC ANALYTICS</span>
+          <div className="visual-stat">
+            <span>Analysis period</span>
+            <b>Sri Lanka · 2022–2026</b>
+          </div>
+        </>
+      )}
+
+      {type === 'mood' && (
+        <>
+          <div className="brain-orb">
+            <BrainCircuit size={70} strokeWidth={1.1} />
+          </div>
+          <span className="visual-label">STUDENT / MOOD ANALYSIS</span>
+          <div className="visual-stat">
+            <span>Productivity tools</span>
+            <b>Mood · Focus · AI Chatbot</b>
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
+
 
 function ProjectModal({ project, onClose }) {
   useEffect(() => {
